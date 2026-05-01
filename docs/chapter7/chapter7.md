@@ -1,6 +1,6 @@
 # Policy Gradient Methods: Learning to Act, Not to Judge
 
-**by Ahmed Abolfadl**
+**by [Ahmed Abolfadl](https://www.linkedin.com/in/ahmed-abolfadl-bb640624b/)**
 
 > Instead of learning which actions are _valuable_, why not learn the actions themselves? That's what policy gradient methods do. They directly optimize the **policy**—the agent's decision-making strategy—by following the gradient of expected return.
 
@@ -1200,6 +1200,8 @@ The mathematical framework is elegant, the intuitions are clear, and the practic
 | $\alpha$                  | Learning rate                                          |
 
 ---
+
+To cite this, please use the following bibtex:
 
 ```bibtex
 @misc{Abolfadl_2026_ReinforcementLearning,
