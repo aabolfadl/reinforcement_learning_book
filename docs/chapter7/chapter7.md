@@ -48,7 +48,7 @@ This chapter will show you exactly how this works, why it's elegant, and how to 
 
 ### A Thought Experiment: Learning in a Maze
 
-Imagine an agent in a maze with a policy parameterized by a neural network $\pi_{\bm{\theta}}$. The network takes the current position and outputs probabilities for each direction (up, down, left, right).
+Imagine an agent in a maze with a policy parameterized by a neural network $\pi_{{\theta}}$. The network takes the current position and outputs probabilities for each direction (up, down, left, right).
 
 The agent doesn't think "how much is going left worth?" Instead, it just **tries actions** and learns. If a path works—leads to the goal—the network updates its parameters to make that action more likely next time.
 
@@ -94,7 +94,7 @@ A **policy** is your agent's decision-making rule. It says: "In this situation, 
 
 In policy gradient methods, we use a neural network to represent the policy:
 
-$$\pi_{\bm{\theta}}(a \mid s) = \text{P(choose action } a \text{ in state } s \text{)}$$
+$$\pi_{{\theta}}(a \mid s) = \text{P(choose action } a \text{ in state } s \text{)}$$
 
 where $\theta$ are the network's weights.
 
@@ -114,7 +114,7 @@ Action: Pick direction with probability proportional to these numbers
 
 The key constraint: **all probabilities must sum to 1** (because we have to choose something).
 
-$$\sum_{a} \pi_{\bm{\theta}}(a \mid s) = 1$$
+$$\sum_{a} \pi_{{\theta}}(a \mid s) = 1$$
 
 ### Value Functions: The "Are We Winning?" Perspective
 
@@ -177,11 +177,13 @@ Because the policy is extracted through an $\arg\max$ operation, a **tiny change
 **Problem:** The training landscape becomes non-smooth, leading to oscillation and instability, especially when Q-values are approximated by a neural network.
 
 **Real-world analogy:** Imagine a robot learning to decide between two paths:
+
 - Path A estimated value: 5.0
 - Path B estimated value: 4.9
 - Robot always takes Path A
 
 Then training updates slightly:
+
 - Path A value: 4.99
 - Path B value: 5.01
 - Robot **completely switches** to Path B
@@ -209,11 +211,13 @@ $$a^* = \arg\max_{a} Q(s, a)$$
 **Real-world challenge:**
 
 Consider a robotic arm learning to grasp:
+
 - **Discrete approach (impossible):** "Choose one of ∞ possible finger positions" — can't enumerate infinity
 - **Quantized workaround:** Discretize to 100 positions per finger × 6 fingers = 10^12 possible states. At 1000 per second, evaluating all takes centuries.
 - **What policy gradients do:** Network directly outputs "apply 2.5 N to finger 1, 3.1 N to finger 2..." in one forward pass
 
 **Why this matters:** Many real-world control problems have continuous action spaces:
+
 - **Autonomous vehicles:** Steering angle, acceleration (infinite precision)
 - **Robotic manipulation:** Joint torques, end-effector position (high dimensional)
 - **Power systems:** Voltage regulation, reactive power (continuous)
@@ -247,15 +251,15 @@ graph LR
 
 In the policy gradient framework, the policy is represented by a _parameterised_ function:
 
-$$\pi_{\bm{\theta}}(a \mid s) = \Pr(A_t = a \mid S_t = s;\; \bm{\theta})$$
+$$\pi_{{\theta}}(a \mid s) = \Pr(A_t = a \mid S_t = s;\; {\theta})$$
 
-where $\bm{\theta} \in \mathbb{R}^{d}$ is a vector of learnable parameters.
+where ${\theta} \in \mathbb{R}^{d}$ is a vector of learnable parameters.
 
 ### Neural Network Implementation
 
-In modern practice, $\pi_{\bm{\theta}}$ is implemented as a _neural network_ whose output layer is passed through a **softmax** function (for discrete actions):
+In modern practice, $\pi_{{\theta}}$ is implemented as a _neural network_ whose output layer is passed through a **softmax** function (for discrete actions):
 
-$$\pi_{\bm{\theta}}(a_i \mid s) = \frac{e^{\theta(s,\, a_i)}}{\sum_{j} e^{\theta(s,\, a_j)}}$$
+$$\pi_{{\theta}}(a_i \mid s) = \frac{e^{\theta(s,\, a_i)}}{\sum_{j} e^{\theta(s,\, a_j)}}$$
 
 where $\theta(s, a)$ denotes the logit (pre-softmax score).
 
@@ -272,7 +276,7 @@ The complete learning cycle is:
 3. An action is _sampled_ from this distribution
 4. Action is executed in environment, returning a reward
 5. Policy performance is evaluated
-6. Network parameters $\bm{\theta}$ are updated to make high-reward actions more probable
+6. Network parameters ${\theta}$ are updated to make high-reward actions more probable
 
 **Key advantage:** This framework supports _stochastic_ policies **by design**. Exploration is intrinsic to the policy, not a hand-crafted add-on.
 
@@ -288,21 +292,21 @@ $$R(\tau) = \sum_{t=0}^{T} \gamma^{t}\, r_t$$
 
 We define the **policy performance objective** as the expected return over trajectories sampled under the current policy:
 
-$$\boxed{J(\bm{\theta}) = \mathbb{E}_{\tau \sim \pi_{\bm{\theta}}}\!\bigl[R(\tau)\bigr]}$$
+$$\boxed{J({\theta}) = \mathbb{E}_{\tau \sim \pi_{{\theta}}}\!\bigl[R(\tau)\bigr]}$$
 
-Our goal is to find $\bm{\theta}^{*} = \arg\max_{\bm{\theta}}\, J(\bm{\theta})$.
+Our goal is to find ${\theta}^{*} = \arg\max_{{\theta}}\, J({\theta})$.
 
 ### Gradient Ascent vs. Descent
 
 Classical supervised learning minimises a loss via _gradient descent_:
 
-$$\bm{\theta}_{t+1} = \bm{\theta}_t - \alpha\, \nabla_{\bm{\theta}}\, \mathcal{L}(\bm{\theta})$$
+$${\theta}_{t+1} = {\theta}_t - \alpha\, \nabla_{{\theta}}\, \mathcal{L}({\theta})$$
 
-In reinforcement learning, there is no "true value" to compare against—only rewards and penalties. We wish to _maximise_ $J(\bm{\theta})$, so we use _gradient ascent_:
+In reinforcement learning, there is no "true value" to compare against—only rewards and penalties. We wish to _maximise_ $J({\theta})$, so we use _gradient ascent_:
 
-$$\bm{\theta}_{t+1} = \bm{\theta}_t + \alpha\, \nabla_{\bm{\theta}}\, J(\bm{\theta})$$
+$${\theta}_{t+1} = {\theta}_t + \alpha\, \nabla_{{\theta}}\, J({\theta})$$
 
-The update moves $\bm{\theta}$ in the direction of **steepest increase** of the objective.
+The update moves ${\theta}$ in the direction of **steepest increase** of the objective.
 
 ### Derivation: Score Function Estimator
 
@@ -342,50 +346,50 @@ The term $\nabla_\theta\log p_\theta(x)$ points in the direction that makes samp
 
 **Step i — Rewrite objective as integral:**
 
-$$J(\bm{\theta}) = \int P(\tau \mid \bm{\theta})\, R(\tau)\, d\tau$$
+$$J({\theta}) = \int P(\tau \mid {\theta})\, R(\tau)\, d\tau$$
 
-where $P(\tau \mid \bm{\theta})$ is the probability density of trajectory $\tau$ under policy $\pi_{\bm{\theta}}$.
+where $P(\tau \mid {\theta})$ is the probability density of trajectory $\tau$ under policy $\pi_{{\theta}}$.
 
 **Step ii — Differentiate under integral:**
 
-$$\nabla_{\bm{\theta}}\, J(\bm{\theta}) = \int \nabla_{\bm{\theta}}\, P(\tau \mid \bm{\theta})\, R(\tau)\, d\tau$$
+$$\nabla_{{\theta}}\, J({\theta}) = \int \nabla_{{\theta}}\, P(\tau \mid {\theta})\, R(\tau)\, d\tau$$
 
 **Step iii — Apply log-derivative trick:**
 
-$$\nabla_{\bm{\theta}}\, P(\tau \mid \bm{\theta}) = P(\tau \mid \bm{\theta})\; \nabla_{\bm{\theta}}\log P(\tau \mid \bm{\theta})$$
+$$\nabla_{{\theta}}\, P(\tau \mid {\theta}) = P(\tau \mid {\theta})\; \nabla_{{\theta}}\log P(\tau \mid {\theta})$$
 
-$$\nabla_{\bm{\theta}}\, J(\bm{\theta}) = \int P(\tau \mid \bm{\theta})\; \nabla_{\bm{\theta}}\log P(\tau \mid \bm{\theta})\; R(\tau)\, d\tau$$
+$$\nabla_{{\theta}}\, J({\theta}) = \int P(\tau \mid {\theta})\; \nabla_{{\theta}}\log P(\tau \mid {\theta})\; R(\tau)\, d\tau$$
 
 **Step iv — Factorise trajectory probability:**
 
 Using the **chain rule of probability** (Markov assumption):
 
-$$P(\tau \mid \bm{\theta}) = \rho(s_0) \prod_{t=0}^{T} \pi_{\bm{\theta}}(a_t \mid s_t)\; P(s_{t+1} \mid s_t, a_t)$$
+$$P(\tau \mid {\theta}) = \rho(s_0) \prod_{t=0}^{T} \pi_{{\theta}}(a_t \mid s_t)\; P(s_{t+1} \mid s_t, a_t)$$
 
 where $\rho(s_0)$ is the initial state distribution and $P(s_{t+1} \mid s_t, a_t)$ is the environment's unknown dynamics.
 
 **Step v — Take logarithm:**
 
-$$\log P(\tau \mid \bm{\theta}) = \log\rho(s_0) + \sum_{t=0}^{T}\log\pi_{\bm{\theta}}(a_t \mid s_t) + \sum_{t=0}^{T}\log P(s_{t+1} \mid s_t, a_t)$$
+$$\log P(\tau \mid {\theta}) = \log\rho(s_0) + \sum_{t=0}^{T}\log\pi_{{\theta}}(a_t \mid s_t) + \sum_{t=0}^{T}\log P(s_{t+1} \mid s_t, a_t)$$
 
 **Step vi — Eliminate environment-dependent terms:**
 
-Differentiating with respect to $\bm{\theta}$:
+Differentiating with respect to ${\theta}$:
 
-- Neither $\log\rho(s_0)$ nor $\log P(s_{t+1} \mid s_t, a_t)$ depend on $\bm{\theta}$
+- Neither $\log\rho(s_0)$ nor $\log P(s_{t+1} \mid s_t, a_t)$ depend on ${\theta}$
 - Their gradients vanish
 
 Therefore:
 
-$$\nabla_{\bm{\theta}}\log P(\tau \mid \bm{\theta}) = \sum_{t=0}^{T} \nabla_{\bm{\theta}}\log\pi_{\bm{\theta}}(a_t \mid s_t)$$
+$$\nabla_{{\theta}}\log P(\tau \mid {\theta}) = \sum_{t=0}^{T} \nabla_{{\theta}}\log\pi_{{\theta}}(a_t \mid s_t)$$
 
 **This is profound:** The gradient depends _only_ on the policy, not on transition dynamics. **Policy gradient methods are model-free.**
 
 ### The Policy Gradient Theorem
 
-**Theorem:** For a differentiable, parameterised policy $\pi_{\bm{\theta}}$ with performance objective $J(\bm{\theta}) = \mathbb{E}_{\tau \sim \pi_{\bm{\theta}}}[R(\tau)]$:
+**Theorem:** For a differentiable, parameterised policy $\pi_{{\theta}}$ with performance objective $J({\theta}) = \mathbb{E}_{\tau \sim \pi_{{\theta}}}[R(\tau)]$:
 
-$$\boxed{\nabla_{\bm{\theta}}\, J(\bm{\theta}) = \mathbb{E}_{\tau \sim \pi_{\bm{\theta}}}\!\left[\sum_{t=0}^{T} \nabla_{\bm{\theta}}\log\pi_{\bm{\theta}}(a_t \mid s_t)\; R(\tau)\right]}$$
+$$\boxed{\nabla_{{\theta}}\, J({\theta}) = \mathbb{E}_{\tau \sim \pi_{{\theta}}}\!\left[\sum_{t=0}^{T} \nabla_{{\theta}}\log\pi_{{\theta}}(a_t \mid s_t)\; R(\tau)\right]}$$
 
 **Interpretation:** The gradient is an expectation, so it can be _estimated_ by Monte Carlo sampling—by running the policy in the environment and collecting trajectories. **No knowledge of the transition dynamics is needed.**
 
@@ -393,9 +397,9 @@ $$\boxed{\nabla_{\bm{\theta}}\, J(\bm{\theta}) = \mathbb{E}_{\tau \sim \pi_{\bm{
 
 An equivalent and often more useful form conditions on individual state-action pairs:
 
-**Theorem:** For a differentiable policy $\pi_{\bm{\theta}}$ in a discounted MDP:
+**Theorem:** For a differentiable policy $\pi_{{\theta}}$ in a discounted MDP:
 
-$$\boxed{\nabla_{\bm{\theta}}J(\bm{\theta}) = \frac{1}{1-\gamma} \mathbb{E}_{s\sim d_{\pi_{\bm{\theta}}},\,a\sim\pi_{\bm{\theta}}} \left[\nabla_{\bm{\theta}}\log\pi_{\bm{\theta}}(a\mid s)\,Q^{\pi_{\bm{\theta}}}(s,a)\right]}$$
+$$\boxed{\nabla_{{\theta}}J({\theta}) = \frac{1}{1-\gamma} \mathbb{E}_{s\sim d_{\pi_{{\theta}}},\,a\sim\pi_{{\theta}}} \left[\nabla_{{\theta}}\log\pi_{{\theta}}(a\mid s)\,Q^{\pi_{{\theta}}}(s,a)\right]}$$
 
 This reveals the **algorithmic template** shared by REINFORCE, Actor-Critic, TRPO, and PPO: estimate a policy score term $\nabla\log\pi$ and weight it by a measure of action quality $Q^{\pi}(s,a)$.
 
@@ -415,7 +419,7 @@ $$G_t = r_t + r_{t+1} + \cdots + r_T = \sum_{k=t}^{T} r_k$$
 
 This yields a **lower-variance, unbiased estimator**, and solves the **credit assignment** problem:
 
-$$\nabla_{\bm{\theta}}\, J(\bm{\theta}) \approx \mathbb{E}_{\tau \sim \pi_{\bm{\theta}}}\!\left[\sum_{t=0}^{T} \nabla_{\bm{\theta}}\log\pi_{\bm{\theta}}(a_t \mid s_t)\; G_t\right]$$
+$$\nabla_{{\theta}}\, J({\theta}) \approx \mathbb{E}_{\tau \sim \pi_{{\theta}}}\!\left[\sum_{t=0}^{T} \nabla_{{\theta}}\log\pi_{{\theta}}(a_t \mid s_t)\; G_t\right]$$
 
 **Key intuition:**
 
@@ -428,11 +432,13 @@ $$\nabla_{\bm{\theta}}\, J(\bm{\theta}) \approx \mathbb{E}_{\tau \sim \pi_{\bm{\
 **Real-world intuition:**
 
 Think of REINFORCE like reviewing a completed project:
+
 - **Good outcome (G_t > 0):** You look back and think "we made good decisions at step t (when we chose action a_t), let's do that again next time."
 - **Bad outcome (G_t < 0):** You realize "that decision at step t was a mistake; we should avoid it."
 - **Strong signal (|G_t| large):** A huge success or massive failure sends a clear message about what to repeat or avoid.
 
 **Example: Learning to write essays**
+
 - Episode: student writes an essay and gets feedback
 - Good paragraph early in essay (G_t > 0 from that point): Reinforce that writing style, structure
 - Weak argument midway (G_t < 0): Reduce probability of that argumentative approach
@@ -442,7 +448,7 @@ Think of REINFORCE like reviewing a completed project:
 
 Combining gradient ascent with the improved estimator:
 
-$$\bm{\theta}_{t+1} = \bm{\theta}_t + \alpha \sum_{t'=0}^{T} \nabla_{\bm{\theta}}\log\pi_{\bm{\theta}}(a_{t'} \mid s_{t'})\cdot G_{t'}$$
+$${\theta}_{t+1} = {\theta}_t + \alpha \sum_{t'=0}^{T} \nabla_{{\theta}}\log\pi_{{\theta}}(a_{t'} \mid s_{t'})\cdot G_{t'}$$
 
 where the sum is taken over all time steps of the collected episode.
 
@@ -478,7 +484,7 @@ $$R(s_0, a_0) = +2, \quad R(s_0, a_1) = -1, \quad R(s_1, a_0) = +1, \quad R(s_1,
 
 **Initial Setup:**
 
-- Policy parameters: $\bm{\theta} = [0.5,\; -0.5,\; 0.1,\; 0.3]^{\top}$
+- Policy parameters: ${\theta} = [0.5,\; -0.5,\; 0.1,\; 0.3]^{\top}$
 - Learning rate: $\alpha = 0.1$
 - Policy uses softmax parameterisation
 
@@ -501,7 +507,7 @@ $$\pi(a_0 \mid s_1) = 0.45, \quad \pi(a_1 \mid s_1) = 0.55$$
 $$\hat{g} = 3\begin{bmatrix}0.27\\-0.27\\0\\0\end{bmatrix} + 1\begin{bmatrix}0\\0\\0.55\\-0.55\end{bmatrix} = \begin{bmatrix}0.81\\-0.81\\0.55\\-0.55\end{bmatrix}$$
 
 **Parameter update:**
-$$\bm{\theta} \leftarrow \begin{bmatrix}0.5\\-0.5\\0.1\\0.3\end{bmatrix} + 0.1 \times \begin{bmatrix}0.81\\-0.81\\0.55\\-0.55\end{bmatrix} = \begin{bmatrix}0.58\\-0.58\\0.16\\0.25\end{bmatrix}$$
+$${\theta} \leftarrow \begin{bmatrix}0.5\\-0.5\\0.1\\0.3\end{bmatrix} + 0.1 \times \begin{bmatrix}0.81\\-0.81\\0.55\\-0.55\end{bmatrix} = \begin{bmatrix}0.58\\-0.58\\0.16\\0.25\end{bmatrix}$$
 
 #### Episode 2
 
@@ -520,7 +526,7 @@ Note: $\pi(a_0 \mid s_0)$ has increased from $0.73 \to 0.76$ ✓
 At $t=0$, agent chose bad action $a_1$. The score component for $\theta(s_0, a_1)$ is positive ($+0.76$). Multiplying by negative return $G_0 = -2$ yields $-1.52$—a **negative update** that **decreases** the probability of choosing $a_1$. ✓
 
 **Updated parameters:**
-$$\bm{\theta} \leftarrow \begin{bmatrix}0.73\\-0.73\\0.203\\0.197\end{bmatrix}$$
+$${\theta} \leftarrow \begin{bmatrix}0.73\\-0.73\\0.203\\0.197\end{bmatrix}$$
 
 #### Policy Evolution
 
@@ -603,7 +609,7 @@ class REINFORCEAgent:
 The Monte Carlo estimator is unbiased, but its variance can be large:
 
 For one trajectory:
-$$\hat{g}(\tau) = \sum_{t=0}^{T} \nabla_{\bm{\theta}}\log\pi_{\bm{\theta}}(a_t\mid s_t)\,G_t$$
+$$\hat{g}(\tau) = \sum_{t=0}^{T} \nabla_{{\theta}}\log\pi_{{\theta}}(a_t\mid s_t)\,G_t$$
 
 Then:
 $$\mathrm{Var}[\hat{g}] = \mathbb{E}\!\left[\|\hat{g}\|^2\right] - \left\|\mathbb{E}[\hat{g}]\right\|^2$$
@@ -630,7 +636,7 @@ graph LR
 
 #### 2. Score-Return Covariance Noise
 
-The product $\nabla\log\pi_{\bm{\theta}}(a_t\mid s_t)\,G_t$ couples:
+The product $\nabla\log\pi_{{\theta}}(a_t\mid s_t)\,G_t$ couples:
 
 - Action-sampling noise
 - Return noise
@@ -641,9 +647,10 @@ Early-step scores multiply high-variance, long-tail returns, creating unstable g
 
 ### REINFORCE with Baseline
 
-The problem with pure REINFORCE: **A single lucky or unlucky episode dominates your learning.** 
+The problem with pure REINFORCE: **A single lucky or unlucky episode dominates your learning.**
 
 Imagine you're learning a skill with high inherent randomness:
+
 - You practice your tennis serve 100 times
 - One lucky day with perfect wind conditions, you score 70 aces (great return!)
 - Based on this, you reinforce every single thing you did that day
@@ -660,21 +667,21 @@ Instead of asking "was this action good in absolute terms?" ask "was this action
 
 **Key insight:** We can subtract any **action-independent** quantity without biasing the gradient.
 
-$$\nabla_{\bm{\theta}}\, J(\bm{\theta}) = \mathbb{E}_{\tau \sim \pi_{\bm{\theta}}}\!\left[\sum_{t=0}^{T} \nabla_{\bm{\theta}}\log\pi_{\bm{\theta}}(a_t \mid s_t) \bigl(G_t - b(s_t)\bigr)\right]$$
+$$\nabla_{{\theta}}\, J({\theta}) = \mathbb{E}_{\tau \sim \pi_{{\theta}}}\!\left[\sum_{t=0}^{T} \nabla_{{\theta}}\log\pi_{{\theta}}(a_t \mid s_t) \bigl(G_t - b(s_t)\bigr)\right]$$
 
 **Theorem: Unbiasedness of Action-Independent Baselines**
 
 Let $b(s)$ be any function independent of action. Then:
 
-$$\mathbb{E}_{a\sim\pi_{\bm{\theta}}(\cdot\mid s)} \left[\nabla_{\bm{\theta}}\log\pi_{\bm{\theta}}(a\mid s)\,b(s)\right] = 0$$
+$$\mathbb{E}_{a\sim\pi_{{\theta}}(\cdot\mid s)} \left[\nabla_{{\theta}}\log\pi_{{\theta}}(a\mid s)\,b(s)\right] = 0$$
 
-Therefore replacing $Q^{\pi}(s,a)$ by $Q^{\pi}(s,a)-b(s)$ leaves $\nabla_{\bm{\theta}}J(\bm{\theta})$ unchanged.
+Therefore replacing $Q^{\pi}(s,a)$ by $Q^{\pi}(s,a)-b(s)$ leaves $\nabla_{{\theta}}J({\theta})$ unchanged.
 
 **Proof:**
 
-$$\mathbb{E}_{a\sim\pi_{\bm{\theta}}}\!\left[\nabla_{\bm{\theta}}\log\pi_{\bm{\theta}}(a\mid s)\,b(s)\right] = b(s)\sum_{a}\pi_{\bm{\theta}}(a\mid s) \nabla_{\bm{\theta}}\log\pi_{\bm{\theta}}(a\mid s)$$
+$$\mathbb{E}_{a\sim\pi_{{\theta}}}\!\left[\nabla_{{\theta}}\log\pi_{{\theta}}(a\mid s)\,b(s)\right] = b(s)\sum_{a}\pi_{{\theta}}(a\mid s) \nabla_{{\theta}}\log\pi_{{\theta}}(a\mid s)$$
 
-$$= b(s)\sum_{a}\nabla_{\bm{\theta}}\pi_{\bm{\theta}}(a\mid s) = b(s)\,\nabla_{\bm{\theta}}\sum_{a}\pi_{\bm{\theta}}(a\mid s) = b(s)\,\nabla_{\bm{\theta}}(1) = 0$$
+$$= b(s)\sum_{a}\nabla_{{\theta}}\pi_{{\theta}}(a\mid s) = b(s)\,\nabla_{{\theta}}\sum_{a}\pi_{{\theta}}(a\mid s) = b(s)\,\nabla_{{\theta}}(1) = 0$$
 
 **Why action-dependent baselines introduce bias:**
 
@@ -696,19 +703,20 @@ $$A^{\pi}(s_t, a_t) = G_t - V^{\pi}(s_t)$$
 
 **Interpretation:**
 
-| Condition                  | Meaning             | Update                       | Real-world Example |
-| -------------------------- | ------------------- | ---------------------------- | --- |
-| $G_t > V^{\pi}(s_t)$       | Better than average | Increase $\pi(a_t \mid s_t)$ | Game: you won more than expected. Repeat that strategy. |
+| Condition                  | Meaning             | Update                       | Real-world Example                                           |
+| -------------------------- | ------------------- | ---------------------------- | ------------------------------------------------------------ |
+| $G_t > V^{\pi}(s_t)$       | Better than average | Increase $\pi(a_t \mid s_t)$ | Game: you won more than expected. Repeat that strategy.      |
 | $G_t < V^{\pi}(s_t)$       | Worse than average  | Decrease $\pi(a_t \mid s_t)$ | Interview: you scored lower than typical. Avoid that answer. |
-| $G_t \approx V^{\pi}(s_t)$ | As expected         | Minimal update               | Routine: everything played out normally. No change needed. |
+| $G_t \approx V^{\pi}(s_t)$ | As expected         | Minimal update               | Routine: everything played out normally. No change needed.   |
 
 **Why advantages matter more than raw returns:**
 
 An action might have a +5 return, but:
+
 - If the average state is worth +100, that's actually a terrible action (advantage = -95)
 - If the average state is worth -10, that's a fantastic action (advantage = +15)
 
-The advantage tells you whether an action was good *given its context*, not just in absolute terms.
+The advantage tells you whether an action was good _given its context_, not just in absolute terms.
 
 In practice, $V^{\pi}(s_t)$ is approximated by a second neural network (the _critic_), leading naturally to **Actor-Critic architecture**.
 
@@ -720,12 +728,12 @@ Instead of using the Neural Network to output probabilities for each action, we 
 
 **Gaussian policy**:
 
-$$\pi_{\bm{\theta}}(a \mid s) = \mathcal{N}\!\bigl(\mu_{\bm{\theta}}(s),\; \sigma_{\bm{\theta}}^{2}(s)\bigr)$$
+$$\pi_{{\theta}}(a \mid s) = \mathcal{N}\!\bigl(\mu_{{\theta}}(s),\; \sigma_{{\theta}}^{2}(s)\bigr)$$
 
 where the network outputs:
 
-- Mean: $\mu_{\bm{\theta}}(s)$ (what action to take)
-- Std. Dev: $\sigma_{\bm{\theta}}(s)$ (exploration level)
+- Mean: $\mu_{{\theta}}(s)$ (what action to take)
+- Std. Dev: $\sigma_{{\theta}}(s)$ (exploration level)
 
 **Log-probability:**
 
@@ -744,7 +752,7 @@ $$\log\pi(a \mid s) = -\frac{(a-\mu)^2}{2\sigma^2} - \log\sigma - \frac{1}{2}\lo
 
 #### Visual Effects of Gradient Updates on Normal Distribution
 
-The following diagrams show how the Gaussian policy distribution $\pi_{\bm{\theta}}(a \mid s) = \mathcal{N}(\mu, \sigma^2)$ evolves under different gradient signals.
+The following diagrams show how the Gaussian policy distribution $\pi_{{\theta}}(a \mid s) = \mathcal{N}(\mu, \sigma^2)$ evolves under different gradient signals.
 
 **Flowchart: Policy Learning Loop with Gradient Effects**
 
@@ -792,20 +800,20 @@ This creates a natural **exploration-exploitation tradeoff** without explicit sc
 
 **Real-World Analogies:**
 
-| Domain | μ (Mean/Target) | σ (Std Dev/Range) | Learning Process |
-|--------|---|---|---|
-| **Learning to Cook** | Target amount of salt | How much you vary it | Start varying ingredients widely (σ↑), lock in the perfect amount (σ↓) |
-| **Tennis Service** | Target serve placement | Consistency/accuracy | Learn WHERE to aim (μ), THEN refine precision (σ↓) |
-| **Job Interview Answers** | Core message to deliver | How much improvisation | Explore different phrasings (σ↑), stick with what works (σ↓) |
-| **Robot Pick-and-Place** | Target grip position | Force variability | Try different forces (σ↑), stabilize on reliable grip (σ↓) |
-| **Trading Strategy** | Portfolio allocation | Risk tolerance | Experiment boldly early (σ↑), reduce risk once profitable (σ↓) |
-| **Autonomous Driving** | Target lane position | Steering smoothness | Explore path variations initially (σ↑), center lane precisely (σ↓) |
+| Domain                    | μ (Mean/Target)         | σ (Std Dev/Range)      | Learning Process                                                       |
+| ------------------------- | ----------------------- | ---------------------- | ---------------------------------------------------------------------- |
+| **Learning to Cook**      | Target amount of salt   | How much you vary it   | Start varying ingredients widely (σ↑), lock in the perfect amount (σ↓) |
+| **Tennis Service**        | Target serve placement  | Consistency/accuracy   | Learn WHERE to aim (μ), THEN refine precision (σ↓)                     |
+| **Job Interview Answers** | Core message to deliver | How much improvisation | Explore different phrasings (σ↑), stick with what works (σ↓)           |
+| **Robot Pick-and-Place**  | Target grip position    | Force variability      | Try different forces (σ↑), stabilize on reliable grip (σ↓)             |
+| **Trading Strategy**      | Portfolio allocation    | Risk tolerance         | Experiment boldly early (σ↑), reduce risk once profitable (σ↓)         |
+| **Autonomous Driving**    | Target lane position    | Steering smoothness    | Explore path variations initially (σ↑), center lane precisely (σ↓)     |
 
 **Why this dual learning is powerful:** Unlike supervised learning where you'd need separate training phases for "find the best action" and "execute it precisely," policy gradients learn both simultaneously. The agent naturally transitions from exploration to exploitation as it discovers what works.
 
 **Key insight:** The policy gradient formula is **unchanged**:
 
-$$\nabla_{\bm{\theta}}\, J(\bm{\theta}) = \mathbb{E}_{\tau \sim \pi_{\bm{\theta}}}\!\left[\sum_{t=0}^{T} \nabla_{\bm{\theta}}\log\pi_{\bm{\theta}}(a_t \mid s_t)\; G_t\right]$$
+$$\nabla_{{\theta}}\, J({\theta}) = \mathbb{E}_{\tau \sim \pi_{{\theta}}}\!\left[\sum_{t=0}^{T} \nabla_{{\theta}}\log\pi_{{\theta}}(a_t \mid s_t)\; G_t\right]$$
 
 The log-probability derivative handles the mean and variance automatically.
 
@@ -823,7 +831,7 @@ where $\bar{r}$ is running estimate of average reward per step.
 
 **Online parameter update (after each transition):**
 
-$$\bm{\theta}_{t+1} = \bm{\theta}_t + \alpha_{\bm{\theta}}\, \delta_t\, \nabla_{\bm{\theta}}\log\pi_{\bm{\theta}}(a_t \mid s_t)$$
+$${\theta}_{t+1} = {\theta}_t + \alpha_{{\theta}}\, \delta_t\, \nabla_{{\theta}}\log\pi_{{\theta}}(a_t \mid s_t)$$
 
 **Benefits:**
 
@@ -858,9 +866,9 @@ graph TB
 
 ### Two Network Components
 
-**Actor:** The _policy network_ $\pi_{\bm{\theta}}(a \mid s)$, which takes decisions.
+**Actor:** The _policy network_ $\pi_{{\theta}}(a \mid s)$, which takes decisions.
 
-- Parameters $\bm{\theta}$ are updated to **maximize** expected return
+- Parameters ${\theta}$ are updated to **maximize** expected return
 - Guided by critic's value estimate
 
 **Critic:** The _value network_ $\hat{v}(s, \mathbf{w})$, which evaluates decision quality.
@@ -881,10 +889,12 @@ Think of a student learning to give presentations:
   - **Mentor:** "I was too pessimistic about this type of section. Adjust my expectations."
 
 Without a mentor (critic):
+
 - Student waits until the end of the year for grades (like REINFORCE with full trajectory)
 - Learns slowly with high variance
 
 With a mentor (Actor-Critic):
+
 - Student gets immediate feedback after each presentation
 - Can adjust while momentum is fresh
 - Mentor learns to give better feedback
@@ -897,7 +907,7 @@ $$\delta_t = R_{t+1} + \gamma\, \hat{v}(S_{t+1}, \mathbf{w}) - \hat{v}(S_t, \mat
 
 **Actor update (policy gradient with baseline):**
 
-$$\bm{\theta}_{t+1} = \bm{\theta}_t + \alpha_{\bm{\theta}}\, \delta_t\, \nabla_{\bm{\theta}}\log\pi_{\bm{\theta}}(a_t \mid s_t)$$
+$${\theta}_{t+1} = {\theta}_t + \alpha_{{\theta}}\, \delta_t\, \nabla_{{\theta}}\log\pi_{{\theta}}(a_t \mid s_t)$$
 
 **Critic update (temporal difference learning):**
 
@@ -911,7 +921,7 @@ $$\mathbf{w}_{t+1} = \mathbf{w}_t + \alpha_{w}\, \delta_t\, \nabla_{w}\hat{v}(s_
 2. **Critic benefits from actor:** As policy improves, value estimates become easier to learn (policy is less exploratory)
    - **Example:** Early learning, policy is random—critic sees wildly varying outcomes. Hard to predict value. Later, policy is stable—critic can reliably predict "in state X, we'll get ~5.2 reward." Learning accelerates.
 
-3. **Two-timescale optimization:** $\alpha_w \gg \alpha_{\bm{\theta}}$ ensures critic tracks policy faster, keeping estimates fresh
+3. **Two-timescale optimization:** $\alpha_w \gg \alpha_{{\theta}}$ ensures critic tracks policy faster, keeping estimates fresh
    - **Example:** Critic learns the ground truth fast (like updating tomorrow's weather forecast). Actor learns slower from critic's feedback (like deciding what to wear based on reliable weather). If speeds matched, actor's policy would drift while critic tries to catch up.
 
 ### Relationship to Previous Variants
@@ -951,15 +961,15 @@ graph LR
 
 Policy gradient methods power many modern AI systems:
 
-| Application | Challenge | How Policy Gradients Help |
-|---|---|---|
-| **AlphaGo/AlphaZero** | Learn to play games by trial and error, not memorization | Directly optimize winning probability; handle uncertainty naturally |
-| **Robotic control** | Continuous action spaces (joint angles, forces) | Gaussian policy outputs exact values, not discrete choices |
-| **Self-driving cars** | Complex decisions with many valid strategies; smoothness matters | Stochastic policy ensures safety; smooth gradient updates avoid oscillations |
-| **Dialogue systems** | Generate responses from infinite vocabulary; need diversity | Sample from action distribution for varied, natural responses |
-| **Recommendation systems** | Explore what users like while exploiting known preferences | Natural exploration-exploitation balance via σ scheduling |
-| **Trading algorithms** | Continuous portfolio allocation; market adapts to predictable strategies | Stochastic policies avoid predictability; continuous actions for precision |
-| **Manufacturing** | Robot arm, assembly line; precise continuous control | Deterministic value-based methods would oscillate; policy gradients learn smooth motions |
+| Application                | Challenge                                                                | How Policy Gradients Help                                                                |
+| -------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| **AlphaGo/AlphaZero**      | Learn to play games by trial and error, not memorization                 | Directly optimize winning probability; handle uncertainty naturally                      |
+| **Robotic control**        | Continuous action spaces (joint angles, forces)                          | Gaussian policy outputs exact values, not discrete choices                               |
+| **Self-driving cars**      | Complex decisions with many valid strategies; smoothness matters         | Stochastic policy ensures safety; smooth gradient updates avoid oscillations             |
+| **Dialogue systems**       | Generate responses from infinite vocabulary; need diversity              | Sample from action distribution for varied, natural responses                            |
+| **Recommendation systems** | Explore what users like while exploiting known preferences               | Natural exploration-exploitation balance via σ scheduling                                |
+| **Trading algorithms**     | Continuous portfolio allocation; market adapts to predictable strategies | Stochastic policies avoid predictability; continuous actions for precision               |
+| **Manufacturing**          | Robot arm, assembly line; precise continuous control                     | Deterministic value-based methods would oscillate; policy gradients learn smooth motions |
 
 ### Modern Deep RL as an Extension
 
@@ -993,12 +1003,14 @@ Initial Policy: Network outputs random angles, σ = π/4 (45° spread)
 ```
 
 **What happens:**
+
 1. Robot starts at (0, 0), goal at (10, 0)
 2. Step 1: θ ≈ 0.7 rad (40°) — moves forward-right-ish → r = -9.85 (close!)
 3. Step 2: θ ≈ 2.1 rad (120°) — moves backward-left → r = -12.5 (worse!)
 4. Steps 3-100: Mostly random wandering, average return G ≈ -95
 
 **Policy Update (REINFORCE with baseline):**
+
 - Step 1: G₁ = -95 (overall bad episode), A = G₁ - V(s) ≈ -10
   - But this step happened early, so G₁ includes a long tail of randomness
   - If we subtract baseline V(s) ≈ -85 (expected value in random-policy state): A ≈ -10
@@ -1008,6 +1020,7 @@ Initial Policy: Network outputs random angles, σ = π/4 (45° spread)
   - Update: μ₂ strongly decreases (that 120° was bad!), σ stays high
 
 **After Episode 1:**
+
 - μ has shifted slightly toward "forward" (0 radians = east, goal direction)
 - σ remains high because no action was clearly great
 
@@ -1021,10 +1034,12 @@ Random samples centered around "mostly correct direction" ✓
 ```
 
 **What happens:**
+
 1. Robot reaches goal in 42 steps (much better!)
 2. Episode return: G ≈ -42 (great improvement!)
 
 **Policy Update (Actor-Critic variant):**
+
 - Early steps: A > 0 (better than expected) → reinforce those angles
 - μ increases slightly (0.1 → 0.12 rad, more toward goal)
 - σ remains moderate (still exploring, but not wildly)
@@ -1040,24 +1055,27 @@ Average episode return: -25 (goal reached in 25 steps!)
 ```
 
 **What happens:**
+
 - Most angles sampled are very close to optimal (0.05 ± 0.2 rad)
 - Occasional outliers explore alternatives but mostly fail
 - G is consistently good
 
 **Policy Update:**
+
 - μ stays near 0.05 (nearly optimal, small refinements only)
 - σ decreases (confidence high: 0.2 → 0.12)
 - Exploration phase over, pure exploitation phase
 
 ### What Happened Here
 
-| Phase | μ (Mean) | σ (Std Dev) | Intuition |
-|---|---|---|---|
-| **Episode 1-3** | Drifts toward goal direction | Large (π/4) | "What direction works?" (exploration) |
-| **Episode 4-10** | Converges to near-optimal | Medium (π/5) | "OK, that way works. Are there better ways?" |
-| **Episode 11-20** | Fine-tuning minor variations | Small (π/15) | "We found it. Minimize noise." |
+| Phase             | μ (Mean)                     | σ (Std Dev)  | Intuition                                    |
+| ----------------- | ---------------------------- | ------------ | -------------------------------------------- |
+| **Episode 1-3**   | Drifts toward goal direction | Large (π/4)  | "What direction works?" (exploration)        |
+| **Episode 4-10**  | Converges to near-optimal    | Medium (π/5) | "OK, that way works. Are there better ways?" |
+| **Episode 11-20** | Fine-tuning minor variations | Small (π/15) | "We found it. Minimize noise."               |
 
 The algorithm never explicitly said "now explore, then exploit." **The math made it happen naturally:**
+
 - When σ is large, diverse angles get tried (exploration)
 - When σ shrinks, only good angles dominate (exploitation)
 - All through a single, unified gradient update
@@ -1075,6 +1093,7 @@ When implementing policy gradients, you'll encounter issues. Here's what typical
 **Why:** σ shrinks too fast, policy becomes deterministic, stops exploring entirely.
 
 **Fix:**
+
 - Add entropy regularization: $J'(\theta) = J(\theta) + \beta \mathbb{H}[\pi_\theta]$
 - Keep minimum σ > 0 (e.g., σ ≥ 0.1)
 - Reduce learning rate α
@@ -1088,6 +1107,7 @@ When implementing policy gradients, you'll encounter issues. Here's what typical
 **Why:** High variance in returns, learning rate too high.
 
 **Fix:**
+
 - Add baseline V(s) (reduces variance dramatically)
 - Normalize returns: $(G_t - \text{mean}) / (\text{std} + \epsilon)$
 - Reduce learning rate, use smaller batch sizes
@@ -1101,9 +1121,10 @@ When implementing policy gradients, you'll encounter issues. Here's what typical
 **Why:** Learning rate too low, reward signal too sparse, or sign error in gradient.
 
 **Debug checklist:**
+
 - Verify reward function: check manually that good actions get +R, bad get -R
 - Print gradient: $\nabla \log \pi$ should be non-zero
-- Increase learning rate by 10x and check if training is now *too* chaotic
+- Increase learning rate by 10x and check if training is now _too_ chaotic
 - Verify that returns are actually being computed (off-by-one errors in trajectory indexing)
 
 **Example:** Robot getting stuck learning. Debugging reveals reward is `+1` for all actions (no signal!). Fix: use `+1 for goal, -0.01 per step`.
@@ -1115,6 +1136,7 @@ When implementing policy gradients, you'll encounter issues. Here's what typical
 **Why:** Network too small to represent good policy.
 
 **Fix:**
+
 - Double hidden layer sizes
 - Add more layers
 - Verify loss is actually decreasing (network training at all)
@@ -1128,8 +1150,9 @@ When implementing policy gradients, you'll encounter issues. Here's what typical
 **Why:** σ too small (overconfident), or learning rate updates μ chaotically.
 
 **Fix:**
+
 - Increase σ minimum
-- Reduce μ learning rate: use α_μ < α_σ
+- Reduce μ learning rate: use α*μ < α*σ
 - Add action smoothing loss: penalize $|a_t - a_{t-1}|$
 
 **Example:** Robot arm jerks between positions. Solution: increase σ so actions have natural variance, use two-timescale learning (critic learns faster).
@@ -1161,20 +1184,20 @@ The mathematical framework is elegant, the intuitions are clear, and the practic
 
 ## Appendix: Mathematical Notation
 
-| Symbol                       | Meaning                                                |
-| ---------------------------- | ------------------------------------------------------ |
-| $\pi_{\bm{\theta}}(a\mid s)$ | Policy: probability of action $a$ in state $s$         |
-| $Q^{\pi}(s,a)$               | Q-value: expected return from $(s,a)$ under $\pi$      |
-| $V^{\pi}(s)$                 | V-value: expected return from $s$ under $\pi$          |
-| $A^{\pi}(s,a)$               | Advantage: $Q^{\pi}(s,a) - V^{\pi}(s)$                 |
-| $\tau$                       | Trajectory: sequence of states, actions, rewards       |
-| $R(\tau)$                    | Cumulative discounted return of trajectory             |
-| $G_t$                        | Return-from-t: future discounted rewards from time $t$ |
-| $\nabla_{\bm{\theta}}$       | Gradient with respect to policy parameters             |
-| $\mathbb{E}_{\pi}[\cdot]$    | Expectation under policy $\pi$                         |
-| $d_{\pi}(s)$                 | Stationary occupancy distribution under $\pi$          |
-| $\gamma$                     | Discount factor ($0 \le \gamma < 1$)                   |
-| $\alpha$                     | Learning rate                                          |
+| Symbol                    | Meaning                                                |
+| ------------------------- | ------------------------------------------------------ |
+| $\pi_{{\theta}}(a\mid s)$ | Policy: probability of action $a$ in state $s$         |
+| $Q^{\pi}(s,a)$            | Q-value: expected return from $(s,a)$ under $\pi$      |
+| $V^{\pi}(s)$              | V-value: expected return from $s$ under $\pi$          |
+| $A^{\pi}(s,a)$            | Advantage: $Q^{\pi}(s,a) - V^{\pi}(s)$                 |
+| $\tau$                    | Trajectory: sequence of states, actions, rewards       |
+| $R(\tau)$                 | Cumulative discounted return of trajectory             |
+| $G_t$                     | Return-from-t: future discounted rewards from time $t$ |
+| $\nabla_{{\theta}}$       | Gradient with respect to policy parameters             |
+| $\mathbb{E}_{\pi}[\cdot]$ | Expectation under policy $\pi$                         |
+| $d_{\pi}(s)$              | Stationary occupancy distribution under $\pi$          |
+| $\gamma$                  | Discount factor ($0 \le \gamma < 1$)                   |
+| $\alpha$                  | Learning rate                                          |
 
 ---
 
