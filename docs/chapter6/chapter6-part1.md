@@ -9,7 +9,7 @@ In previous chapters, we have explored two fundamental approaches to Reinforceme
    - [Intuitive Walkthrough: The "Driving Home" Problem](#3-intuitive-walkthrough-the-driving-home-problem)
    - [Why is TD Better?](#4-why-is-td-better)
    - [Deep Dive: The Optimality of TD(0)](#5-deep-dive-the-optimality-of-td0)
-   - [Python & Library Suggestions](#6-python--library-suggestions)
+   - [Python & Library Suggestions](#6-python-library-suggestions)
    - [Conclusion](#7-conclusion)
    - [References](#8-references)
    
