@@ -8,10 +8,10 @@ nav:
   #     - Part 2 – Advanced Topics: chapter2/chapter2-part2.md
   # - Chapter 3 - Dynamic Programming: chapter3/chapter3.md
   # - Chapter 4 - Monte Carlo Methods: chapter4/chapter4.md
-  # - Chapter 5 - Temporal Difference Learning: chapter5/chapter5.md
-  - Chapter 6 - Function Approximation:
-      - Part 1 – Fundamentals: chapter6/chapter6-part1.md
-      - Part 2 – Advanced Topics: chapter6/chapter6-part2.md
+  # - Chapter 5 - Function Approximation: chapter5/chapter5.md
+  - Chapter 6 - Temporal Difference Learning:
+      - Part 1 – Temporal Difference Learning: chapter6/chapter6-part1.md
+      - Part 2 – SARSA and Q-learning (On- and Off-Policy learning): chapter6/chapter6-part2.md
   - Chapter 7 - Policy Gradient Methods: chapter7/chapter7.md
   # - Chapter 8 - Deep Reinforcement Learning: chapter8/chapter8.md
   # - Chapter 9 - Applications in Robotics: chapter9/chapter9.md
