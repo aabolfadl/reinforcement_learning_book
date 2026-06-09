@@ -27,6 +27,3 @@ theme:
 markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
-
-extra_javascript:
-  - https://cdn.jsdelivr.net/npm/mathjax
