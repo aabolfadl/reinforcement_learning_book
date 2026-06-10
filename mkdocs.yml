@@ -4,8 +4,8 @@ nav:
   - Home: index.md
   - Chapter 1 - Introduction to RL: chapter1/chapter1.md
   - Chapter 2 - Markov Decision Processes:
-      - Part 1 – Markov Decision Processes: chapter2/chapter2-part1.md
-      - Part 2 – Policy Iteration on MDPs: chapter2/chapter2-part2.md
+      - Part 1 – Markov Decision Processes: chapter2/chapter2a.md
+      - Part 2 – Policy Iteration on MDPs: chapter2b/chapter2b.md
   # - Chapter 3 - Dynamic Programming: chapter3/chapter3.md
   # - Chapter 4 - Monte Carlo Methods: chapter4/chapter4.md
   # - Chapter 5 - Function Approximation: chapter5/chapter5.md
