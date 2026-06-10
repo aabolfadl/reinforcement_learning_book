@@ -7,7 +7,7 @@ nav:
       - Part 1 – Markov Decision Processes: chapter2/chapter2a.md
       - Part 2 – Policy Iteration on MDPs: chapter2b/chapter2b.md
   # - Chapter 3 - Dynamic Programming: chapter3/chapter3.md
-  # - Chapter 4 - Monte Carlo Methods: chapter4/chapter4.md
+  - Chapter 4 - Monte Carlo Methods: chapter4/chapter4.md
   # - Chapter 5 - Function Approximation: chapter5/chapter5.md
   - Chapter 6 - Temporal Difference Learning:
       - Part 1 – Temporal Difference Learning: chapter6/chapter6-part1.md
