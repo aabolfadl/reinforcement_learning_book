@@ -4,6 +4,41 @@
 
 > Instead of learning which actions are _valuable_, why not learn the actions themselves? That's what policy gradient methods do. They directly optimize the **policy**—the agent's decision-making strategy—by following the gradient of expected return.
 
+## Agenda
+
+- Purpose: Explain what policy gradient methods are and why we optimize policies directly.
+- Learning goals: Understand the Policy Gradient Theorem, derive practical gradient estimators, implement REINFORCE and its common variants, and survey Actor–Critic methods.
+- Roadmap: Introduction → Core concepts (MDP, policy, value functions) → Limitations of value-based methods → Policy gradient framework → Theorem derivation → Algorithms (REINFORCE, variants) → Actor–Critic overview → Practical tips and examples.
+- What to take away: Intuition for direct policy optimisation, a working REINFORCE implementation, and guidance on reducing variance in practice.
+
+## Table of Contents
+
+- [Quick Overview](#quick-overview)
+- [Introduction: A Different Way to Learn](#introduction-a-different-way-to-learn)
+  - [A Thought Experiment: Learning in a Maze](#a-thought-experiment-learning-in-a-maze)
+- [Part 1: The Basics (You've Seen This Before)](#part-1-the-basics-youve-seen-this-before)
+  - [What's an MDP? (The Problem Setup)](#whats-an-mdp-the-problem-setup)
+  - [The Policy: "Here's My Plan"](#the-policy-heres-my-plan)
+  - [Value Functions: The "Are We Winning?" Perspective](#value-functions-the-are-we-winning-perspective)
+  - [One Important Insight: Why Our Data Isn't Random](#one-important-insight-why-our-data-isnt-random)
+- [Part 2: Limitations of Value-Based Methods](#part-2-limitations-of-value-based-methods)
+  - [1. Determinism](#1-determinism)
+  - [2. Non-Smooth Convergence](#2-non-smooth-convergence)
+  - [3. Inapplicability to Continuous Action Spaces](#3-inapplicability-to-continuous-action-spaces)
+  - [Motivation: Why Optimize the Policy Directly?](#motivation-why-optimize-the-policy-directly)
+- [Part 3: Policy Gradient Framework](#part-3-policy-gradient-framework)
+  - [Core Idea: Direct Policy Parameterization](#core-idea-direct-policy-parameterization)
+  - [Neural Network Implementation](#neural-network-implementation)
+  - [Learning Loop](#learning-loop)
+- [Part 4: The Policy Gradient Theorem](#part-4-the-policy-gradient-theorem)
+  - [Performance Objective](#performance-objective)
+  - [Gradient Ascent vs. Descent](#gradient-ascent-vs-descent)
+  - [Derivation: Score Function Estimator](#derivation-score-function-estimator)
+  - [Plain Language Intuition](#plain-language-intuition)
+  - [Full Derivation Steps](#full-derivation-steps)
+  - [The Policy Gradient Theorem](#the-policy-gradient-theorem)
+- [Appendix: Mathematical Notation](#appendix-mathematical-notation)
+
 ## Quick Overview
 
 We're going to explore **policy gradient methods**—algorithms that let AI agents learn to make good decisions through trial and error.
@@ -251,7 +286,7 @@ graph LR
 
 In the policy gradient framework, the policy is represented by a _parameterised_ function:
 
-$$\pi_{{\theta}}(a \mid s) = \Pr(A_t = a \mid S_t = s;\; {\theta})$$
+$$\pi_{{\theta}}(a \mid s) = \Pr(A_t = a \mid S_t = s,\; {\theta})$$
 
 where ${\theta} \in \mathbb{R}^{d}$ is a vector of learnable parameters.
 
@@ -293,6 +328,8 @@ $$R(\tau) = \sum_{t=0}^{T} \gamma^{t}\, r_t$$
 We define the **policy performance objective** as the expected return over trajectories sampled under the current policy:
 
 $$\boxed{J({\theta}) = \mathbb{E}_{\tau \sim \pi_{{\theta}}}\!\bigl[R(\tau)\bigr]}$$
+
+In simple terms: $J(\theta)$ measures how good our agent's behavior is on average. It represents the total reward we expect to collect if we let an agent act in the environment using its current brain/policy (parameterized by $\theta$). The goal of policy gradient algorithms is to adjust $\theta$ to make this expected score as high as possible
 
 Our goal is to find ${\theta}^{*} = \arg\max_{{\theta}}\, J({\theta})$.
 
@@ -346,31 +383,31 @@ The term $\nabla_\theta\log p_\theta(x)$ points in the direction that makes samp
 
 **Step i — Rewrite objective as integral:**
 
-$$J({\theta}) = \int P(\tau \mid {\theta})\, R(\tau)\, d\tau$$
+$$J({\theta}) = \int P(\tau ; {\theta})\, R(\tau)\, d\tau$$
 
-where $P(\tau \mid {\theta})$ is the probability density of trajectory $\tau$ under policy $\pi_{{\theta}}$.
+where $P(\tau ; {\theta})$ is the probability density of trajectory $\tau$ under policy $\pi_{{\theta}}$.
 
 **Step ii — Differentiate under integral:**
 
-$$\nabla_{{\theta}}\, J({\theta}) = \int \nabla_{{\theta}}\, P(\tau \mid {\theta})\, R(\tau)\, d\tau$$
+$$\nabla_{{\theta}}\, J({\theta}) = \int \nabla_{{\theta}}\, P(\tau ; {\theta})\, R(\tau)\, d\tau$$
 
 **Step iii — Apply log-derivative trick:**
 
-$$\nabla_{{\theta}}\, P(\tau \mid {\theta}) = P(\tau \mid {\theta})\; \nabla_{{\theta}}\log P(\tau \mid {\theta})$$
+$$\nabla_{{\theta}}\, P(\tau ; {\theta}) = P(\tau ; {\theta})\; \nabla_{{\theta}}\log P(\tau ; {\theta})$$
 
-$$\nabla_{{\theta}}\, J({\theta}) = \int P(\tau \mid {\theta})\; \nabla_{{\theta}}\log P(\tau \mid {\theta})\; R(\tau)\, d\tau$$
+$$\nabla_{{\theta}}\, J({\theta}) = \int P(\tau ; {\theta})\; \nabla_{{\theta}}\log P(\tau ; {\theta})\; R(\tau)\, d\tau$$
 
 **Step iv — Factorise trajectory probability:**
 
 Using the **chain rule of probability** (Markov assumption):
 
-$$P(\tau \mid {\theta}) = \rho(s_0) \prod_{t=0}^{T} \pi_{{\theta}}(a_t \mid s_t)\; P(s_{t+1} \mid s_t, a_t)$$
+$$P(\tau ; {\theta}) = \rho(s_0) \prod_{t=0}^{T} \pi_{{\theta}}(a_t \mid s_t)\; P(s_{t+1} \mid s_t, a_t)$$
 
 where $\rho(s_0)$ is the initial state distribution and $P(s_{t+1} \mid s_t, a_t)$ is the environment's unknown dynamics.
 
 **Step v — Take logarithm:**
 
-$$\log P(\tau \mid {\theta}) = \log\rho(s_0) + \sum_{t=0}^{T}\log\pi_{{\theta}}(a_t \mid s_t) + \sum_{t=0}^{T}\log P(s_{t+1} \mid s_t, a_t)$$
+$$\log P(\tau ; {\theta}) = \log\rho(s_0) + \sum_{t=0}^{T}\log\pi_{{\theta}}(a_t \mid s_t) + \sum_{t=0}^{T}\log P(s_{t+1} \mid s_t, a_t)$$
 
 **Step vi — Eliminate environment-dependent terms:**
 
@@ -381,7 +418,7 @@ Differentiating with respect to ${\theta}$:
 
 Therefore:
 
-$$\nabla_{{\theta}}\log P(\tau \mid {\theta}) = \sum_{t=0}^{T} \nabla_{{\theta}}\log\pi_{{\theta}}(a_t \mid s_t)$$
+$$\nabla_{{\theta}}\log P(\tau ; {\theta}) = \sum_{t=0}^{T} \nabla_{{\theta}}\log\pi_{{\theta}}(a_t \mid s_t)$$
 
 **This is profound:** The gradient depends _only_ on the policy, not on transition dynamics. **Policy gradient methods are model-free.**
 
@@ -401,7 +438,200 @@ An equivalent and often more useful form conditions on individual state-action p
 
 $$\boxed{\nabla_{{\theta}}J({\theta}) = \frac{1}{1-\gamma} \mathbb{E}_{s\sim d_{\pi_{{\theta}}},\,a\sim\pi_{{\theta}}} \left[\nabla_{{\theta}}\log\pi_{{\theta}}(a\mid s)\,Q^{\pi_{{\theta}}}(s,a)\right]}$$
 
-This reveals the **algorithmic template** shared by REINFORCE, Actor-Critic, TRPO, and PPO: estimate a policy score term $\nabla\log\pi$ and weight it by a measure of action quality $Q^{\pi}(s,a)$.
+#### Policy Gradient Theorem Breakdown
+
+The theorem states:
+
+$$\boxed{\nabla_{{\theta}}J({\theta}) = \frac{1}{1-\gamma} \mathbb{E}_{s\sim d_{\pi_{{\theta}}},\,a\sim\pi_{{\theta}}} \left[\nabla_{{\theta}}\log\pi_{{\theta}}(a\mid s)\,Q^{\pi_{{\theta}}}(s,a)\right]}$$
+
+This equation describes how to adjust the policy parameters $\theta$ in order to increase the expected long-term reward.
+
+##### Left-Hand Side: $\nabla_{\theta}J(\theta)$
+
+- $J(\theta)$ is the objective function of the agent.
+- It represents the expected discounted return obtained when following policy $\pi_{\theta}$.
+- $\nabla_{\theta}J(\theta)$ is the gradient of this objective with respect to the policy parameters.
+- It tells us **which direction in parameter space will most increase performance**.
+
+In optimization terms, this is the quantity used in gradient ascent:
+
+$$
+\theta \leftarrow \theta + \alpha \nabla_{\theta}J(\theta)
+$$
+
+where $\alpha$ is the learning rate.
+
+---
+
+##### The Discount Scaling Factor: $\frac{1}{1-\gamma}$
+
+The factor
+
+$$
+\frac{1}{1-\gamma}
+$$
+
+arises from the discounted-state visitation distribution.
+
+- $\gamma \in [0,1)$ is the discount factor.
+- Larger $\gamma$ places more emphasis on future rewards.
+- As $\gamma$ approaches $1$, trajectories become effectively longer and the scaling factor increases.
+
+Many practical derivations absorb this constant into the learning rate since it does not depend on $\theta$.
+
+---
+
+##### The Expectation Operator
+
+$$
+\mathbb{E}_{s\sim d_{\pi_{{\theta}}},\,a\sim\pi_{{\theta}}}
+$$
+
+means that we average over all state-action pairs encountered while following the current policy.
+
+The expectation is taken in two stages:
+
+1. Sample a state
+
+   $$
+   s \sim d_{\pi_{\theta}}
+   $$
+
+2. Sample an action
+
+   $$
+   a \sim \pi_{\theta}(\cdot|s)
+   $$
+
+The gradient is therefore not computed for a single state-action pair but as an average over the agent's entire experience.
+
+---
+
+##### State Visitation Distribution: $d_{\pi_{\theta}}(s)$
+
+The distribution
+
+$$
+d_{\pi_{\theta}}(s)
+$$
+
+measures how frequently the policy visits each state.
+
+States encountered more often contribute more heavily to the gradient.
+
+Intuitively:
+
+- Frequently visited states are more important because they have a larger impact on long-term performance.
+- Rarely visited states contribute little because the agent almost never reaches them.
+
+Thus, policy improvement naturally focuses on the parts of the environment the agent actually experiences.
+
+---
+
+##### Policy Distribution: $\pi_{\theta}(a|s)$
+
+The term
+
+$$
+\pi_{\theta}(a|s)
+$$
+
+is the probability that the policy selects action $a$ when in state $s$.
+
+Examples:
+
+- For a discrete action space, it may come from a softmax output.
+- For a continuous action space, it may be the density of a Gaussian distribution whose mean and variance are produced by a neural network.
+
+The parameters $\theta$ determine this distribution.
+
+---
+
+##### Score Function: $\nabla_{\theta}\log\pi_{\theta}(a|s)$
+
+This is often called the **policy score function**.
+
+$$
+\nabla_{\theta}\log\pi_{\theta}(a|s)
+$$
+
+It measures how the log-probability of taking action $a$ changes when the policy parameters are modified.
+
+Interpretation:
+
+- Positive components increase the probability of the chosen action.
+- Negative components decrease the probability of the chosen action.
+
+This term determines **how** the policy should change.
+
+It contains no information about whether the action was good or bad; it only describes the sensitivity of the action probability to the parameters.
+
+---
+
+##### Action-Value Function: $Q^{\pi_{\theta}}(s,a)$
+
+The action-value function is
+
+$$
+Q^{\pi_{\theta}}(s,a)=\mathbb{E}
+\left[
+\sum_{t=0}^{\infty}
+\gamma^t r_t
+\,\middle|\,
+s_0=s\,,
+a_0=a\,,
+\pi_{\theta}
+\right].
+$$
+
+It represents the expected discounted return obtained by:
+
+1. Starting in state $s$,
+2. Taking action $a$,
+3. Following policy $\pi_{\theta}$ thereafter.
+
+This term measures **how good the chosen action is**.
+
+- Large positive values indicate desirable actions.
+- Small values indicate less useful actions.
+- Negative values indicate harmful actions.
+
+---
+
+##### The Product of the Two Terms
+
+The key quantity is
+
+$$
+\nabla_{\theta}\log\pi_{\theta}(a|s),
+Q^{\pi_{\theta}}(s,a).
+$$
+
+The two factors play different roles:
+
+The two factors play different roles:
+
+| Term                                        | Role                                      |
+| :------------------------------------------ | :---------------------------------------- |
+| $\nabla_{\theta}\log\pi_{\theta}(a \mid s)$ | How to change the policy                  |
+| $Q^{\pi_{\theta}}(s,a)$                     | Whether the action deserves reinforcement |
+
+Together they implement a simple principle:
+
+- If an action produces high return ($Q$ is large), increase its probability.
+- If an action produces low return ($Q$ is small or negative), decrease its probability.
+
+This is the mathematical expression of **learning by reinforcement**.
+
+---
+
+##### Intuitive Summary
+
+The theorem can be read as:
+
+> To improve a policy, repeatedly observe state-action pairs generated by the current policy, estimate how good each action was using $Q^{\pi}(s,a)$, and then adjust the policy parameters to make good actions more likely and bad actions less likely.
+
+This decomposition is what makes modern policy-gradient methods possible. Algorithms such as **REINFORCE**, **Actor-Critic**, **A2C**, **A3C**, **TRPO**, and **PPO** all differ mainly in how they estimate the action-quality term $Q^{\pi}(s,a)$ and how they perform the resulting gradient update.
 
 ---
 
@@ -864,6 +1094,8 @@ graph TB
     style Value fill:#c8e6c9
 ```
 
+`Dangling arrows are self-loops`
+
 ### Two Network Components
 
 **Actor:** The _policy network_ $\pi_{{\theta}}(a \mid s)$, which takes decisions.
@@ -1206,10 +1438,9 @@ To cite this, please use the following bibtex:
 ```bibtex
 @misc{Abolfadl_2026_ReinforcementLearning,
   author       = {Ahmed Abolfadl},
-  title        = {Reinforcement Learning: A Gentle Introduction, Chapter #7},
+  title        = {Reinforcement Learning: A Gentle Introduction, Chapter 6: Policy Gradient Methods},
   year         = {2026},
   publisher    = {GitHub},
-  howpublished = {\url{https://github.com/amrmsab/reinforcement_learning_book}},
-  note         = {Accessed: April 30, 2026}
+  howpublished = {\url{https://github.com/amrmsab/reinforcement_learning_book}}
 }
 ```
